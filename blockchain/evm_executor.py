@@ -97,16 +97,19 @@ def _rpc_url(chain: str) -> str:
 
 
 async def _rpc(chain: str, method: str, params: list) -> dict:
+    endpoint = _rpc_url(chain)
+    host = settings.endpoint_host(endpoint)
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT) as c:
             r = await c.post(
-                _rpc_url(chain),
+                endpoint,
                 json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params},
             )
             r.raise_for_status()
             return r.json()
     except Exception as exc:
-        logger.error("EVM RPC [%s/%s]: %s", chain, method, exc)
+        logger.error("EVM RPC failure chain=%s host=%s method=%s: %s",
+                     chain, host, method, exc)
         return {}
 
 
